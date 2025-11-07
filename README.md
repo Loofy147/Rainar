@@ -2,6 +2,10 @@
 
 A powerful, enterprise-grade project scaffolding tool.
 
+## Project Vision
+
+For a detailed explanation of the project's vision, goals, and methodology, please see the [Project Vision](./VISION.md) document.
+
 ## Installation
 
 ```bash
