@@ -1,0 +1,49 @@
+{
+  "name": "@rainar/cli",
+  "version": "1.0.0",
+  "description": "A powerful, enterprise-grade project scaffolding tool.",
+  "main": "index.js",
+  "type": "module",
+  "bin": {
+    "rainar": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Loofy147/Rainar.git"
+  },
+  "keywords": [
+    "cli",
+    "scaffolding",
+    "generator"
+  ],
+  "author": "Jules",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Loofy147/Rainar/issues"
+  },
+  "homepage": "https://github.com/Loofy147/Rainar#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "index.js",
+    "templates"
+  ],
+  "devDependencies": {
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "jest": "^30.2.0",
+    "prettier": "^3.6.2"
+  },
+  "dependencies": {
+    "chalk": "^5.6.2",
+    "commander": "^14.0.2",
+    "ejs": "^3.1.10",
+    "fs-extra": "^11.3.2",
+    "inquirer": "^12.10.0"
+  }
+}
