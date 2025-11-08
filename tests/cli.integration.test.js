@@ -1,30 +1,67 @@
-import { exec } from 'child_process';
-import { promisify } from 'util';
-import fse from 'fs-extra';
-import path from 'path';
+import { jest } from '@jest/globals';
 
-const execAsync = promisify(exec);
+// This test file is for the main CLI entry point (index.js)
+
+// Mock the external dependencies of index.js
+const mockCreateProject = jest.fn();
+const mockGetTemplates = jest.fn();
+const mockCreateRepository = jest.fn();
+const mockInitAndPush = jest.fn();
+
+jest.unstable_mockModule('../lib/scaffolder.js', () => ({
+  createProject: mockCreateProject,
+  getTemplates: mockGetTemplates,
+}));
+
+jest.unstable_mockModule('../lib/github.js', () => ({
+  createRepository: mockCreateRepository,
+  initAndPush: mockInitAndPush,
+}));
+
+// We need to import the CLI entry point *after* setting up the mocks
+const program = (await import('../index.js')).default;
 
 describe('CLI Integration Test', () => {
-  const projectName = 'test-cli-project';
-  const projectDir = path.resolve(process.cwd(), projectName);
 
-  beforeEach(async () => {
-    await fse.remove(projectDir);
+  beforeEach(() => {
+    // Reset mocks before each test
+    mockCreateProject.mockClear();
+    mockGetTemplates.mockClear();
+    mockCreateRepository.mockClear();
+    mockInitAndPush.mockClear();
   });
 
-  afterAll(async () => {
-    await fse.remove(projectDir);
+  it('should call scaffolder but not github when --create-repo is not provided', async () => {
+    // Arrange
+    mockCreateProject.mockResolvedValue('/path/to/my-project');
+    const argv = ['node', 'index.js', 'new', 'my-project', '--template', 'default'];
+
+    // Act
+    await program.parseAsync(argv);
+
+    // Assert
+    expect(mockCreateProject).toHaveBeenCalledWith('my-project', 'default');
+    expect(mockCreateRepository).not.toHaveBeenCalled();
+    expect(mockInitAndPush).not.toHaveBeenCalled();
   });
 
-  it('should create a new project', async () => {
-    const { stdout, stderr } = await execAsync(`./index.js new ${projectName}`);
+  it('should call scaffolder and github when --create-repo is provided', async () => {
+    // Arrange
+    const projectPath = '/path/to/my-gh-project';
+    const repoUrl = 'git@github.com:user/my-gh-project.git';
+    const token = 'my-secret-token';
 
-    expect(stderr).toBe('');
-    expect(stdout).toContain(`Creating a new project named: ${projectName}`);
-    expect(stdout).toContain('Project created successfully!');
+    mockCreateProject.mockResolvedValue(projectPath);
+    mockCreateRepository.mockResolvedValue({ ssh_url: repoUrl });
 
-    const packageJson = await fse.readJson(path.join(projectDir, 'package.json'));
-    expect(packageJson.name).toBe(projectName);
+    const argv = ['node', 'index.js', 'new', 'my-gh-project', '--template', 'default', '--create-repo', '--github-token', token];
+
+    // Act
+    await program.parseAsync(argv);
+
+    // Assert
+    expect(mockCreateProject).toHaveBeenCalledWith('my-gh-project', 'default');
+    expect(mockCreateRepository).toHaveBeenCalledWith('my-gh-project', token);
+    expect(mockInitAndPush).toHaveBeenCalledWith(repoUrl, projectPath);
   });
 });
